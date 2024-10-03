@@ -1,39 +1,59 @@
 import React, { useEffect, useState } from "react";
-// import { v4 as uuidv4 } from 'uuid';
-// let taskss=[]
+import { v4 as uuidv4 } from 'uuid';
+let taskss=[]
 const Inputs = () => {
   const [hours, setHours] = useState("");
   const [minutes, setMinutes] = useState("");
   const [second, setSecond] = useState("");
-  const [start, setStart] = useState(false);
-  const [countDown, setCountDown] = useState("");
-  // const[task,setTask]=useState(taskss)
+  const[task,setTask]=useState(taskss)
+ useEffect(()=>{
+  let IntervalId;
+   if(task.length>0 && task[task.length-1].run){
+    IntervalId=setInterval(()=>{
+      setTask((prevTask)=>
+        prevTask.map((t)=>{
+          if(t.run){
+            let totalSec=t.hours*3600+t.minutes*60+t.second;
+           if(totalSec>0){
+            totalSec--;
+            let hh=Math.floor(totalSec/3600)
+            let mm=Math.floor((totalSec%3600)/60)
+            let ss=Math.floor(totalSec%60)
+            return{
+              ...t,
+              hours:hh,
+              minutes:mm,
+              second:ss,
+              countDown:`${hh.toString().padStart(2,'0')}:${mm.toString().padStart(2,'0')}:${ss.toString().padStart(2,'0')}`,
+            };
+           }
+           else{
+            clearInterval(IntervalId);
+            return {...t,run:false,countDown:'00:00:00'}
+           }
 
-  function timeFormat(hours, min, sec) {
-    const timeString = `${hours.toString().padStart(2, "0")}:${min
-      .toString()
-      .padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
-    setCountDown(timeString);
+          }
+         
+          return t;
+        })
+      )
+    },1000)
+
+   }
+   return ()=>clearInterval(IntervalId)
+ },[task])
+ function addTask(){
+  let newObj={
+    id:uuidv4(),
+    hours:hours||0,
+    minutes:minutes||0,
+    second:second||0,
+    countDown:`${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${second.toString().padStart(2,'0')}`,
+    run:true
   }
-
-  function setAlaram(hours, minutes, second) {
-    let totalTimeInSec = hours * 3600 + minutes * 60 + second;
-    const intervalId = setInterval(() => {
-      if (totalTimeInSec > 0) {
-        totalTimeInSec--;
-        const hh = Math.floor(totalTimeInSec / 3600);
-        const mm = Math.floor((totalTimeInSec % 3600) / 60);
-        const ss = Math.floor(totalTimeInSec % 60);
-        timeFormat(hh, mm, ss);
-      } else {
-        clearInterval(intervalId);
-        alert("Time is Up");
-        setStart(false);
-        setCountDown("00:00:00");
-      }
-    }, 1000);
-  }
-
+  setTask([...task,newObj])
+ }
+  
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-200 to-blue-500">
       <div className="w-[350px] p-6 bg-white rounded-lg shadow-lg">
@@ -74,31 +94,51 @@ const Inputs = () => {
           />
         </div>
         <button
-          onClick={() => {
-            // let newobj={
-            //   id:uuidv4(),
-            //   countDown:countDown
-            // }
-            // setTask([...task,newobj]);
-            setStart(true);
-            setAlaram(hours, minutes, second);
-            setHours('')
-            setMinutes('')
-            setSecond('')
-          }}
+          onClick={addTask}
           className="mt-4 w-full bg-blue-600 text-white font-semibold py-3 rounded-md hover:bg-blue-700 transition duration-300 shadow-md focus:outline-none"
         >
           Set Time
         </button>
       </div>
-    {start && (
-  <div className="text-2xl font-semibold text-white bg-blue-600 px-4 py-2 rounded-md shadow-lg mt-4">
-    CountDown: {countDown}
+      <div className="w-full max-w-md mt-8 p-4 bg-white rounded-lg shadow-md">
+  <h3 className="text-xl font-bold text-gray-800 mb-4">Tasks Countdown</h3>
+  <div className="flex flex-col space-y-3">
+    {task.length > 0 &&
+      task.map((item) => (
+        <div
+          key={item.id}
+          className="flex items-center justify-between px-4 py-2 border border-gray-200 rounded-md bg-blue-50 shadow-sm"
+        >
+          <span className="text-gray-700 font-medium">CountDown:</span>
+          <span className="text-lg font-semibold text-blue-800">
+            {item.countDown}
+          </span>
+        </div>
+      ))}
   </div>
-)}
+</div>
 
     </div>
   );
 };
 
 export default Inputs;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
